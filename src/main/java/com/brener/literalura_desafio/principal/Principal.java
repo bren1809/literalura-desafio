@@ -4,11 +4,11 @@ import com.brener.literalura_desafio.model.Autor;
 import com.brener.literalura_desafio.model.DadosLivro;
 import com.brener.literalura_desafio.model.DadosResultados;
 import com.brener.literalura_desafio.model.Livro;
+import com.brener.literalura_desafio.repository.AutorRepository;
 import com.brener.literalura_desafio.repository.LivroRepository;
 import com.brener.literalura_desafio.service.ConsumoApiService;
 import com.brener.literalura_desafio.service.ConverteDados;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.Optional;
 import java.util.Scanner;
@@ -19,9 +19,11 @@ public class Principal {
     private final ConverteDados conversor = new ConverteDados();
     private final String ENDERECO_BASE = "https://gutendex.com/books/";
     private final LivroRepository livroRepository;
+    private final AutorRepository autorRepository;
 
-    public Principal(LivroRepository livroRepository) {
+    public Principal(LivroRepository livroRepository, AutorRepository autorRepository) {
         this.livroRepository = livroRepository;
+        this.autorRepository = autorRepository;
     }
 
     public void exibirMenuPrincipal() {
@@ -57,13 +59,13 @@ public class Principal {
                 processarListagemDeLivrosRegistrados();
                 break;
             case 3:
-                System.out.println("Funcionalidade ainda não implementada.");
+                processarListagemDeAutoresRegistrados();
                 break;
             case 4:
-                System.out.println("Funcionalidade ainda não implementada.");
+                processarListagemDeAutoresVivosPorAno();
                 break;
             case 5:
-                System.out.println("Funcionalidade ainda não implementada.");
+                processarListagemDeLivrosPorIdioma();
                 break;
             case 0:
                 System.out.println("Encerrando a aplicação...");
@@ -72,6 +74,7 @@ public class Principal {
                 System.out.println("Opção inválida! Por favor, escolha um número do menu.");
         }
     }
+
 
     private void processarBuscaDeLivroPorTitulo() {
         System.out.print("Digite o nome do livro para busca: ");
@@ -118,6 +121,54 @@ public class Principal {
         } else {
             System.out.println("\n--- LISTA DE LIVROS REGISTRADOS ---");
             livros.forEach(System.out::println);
+        }
+    }
+
+    private void processarListagemDeAutoresRegistrados() {
+        List<Autor> autores = autorRepository.findAll();
+
+        if (autores.isEmpty()) {
+            System.out.println("Nenhum autor registrado no banco de dados.");
+        } else {
+            System.out.println("\n--- LISTA DE AUTORES REGISTRADOS ---");
+            autores.forEach(System.out::println);
+        }
+    }
+
+    private void processarListagemDeAutoresVivosPorAno() {
+        System.out.println("Digite o ano que deseja pesquisar: ");
+        try {
+            var ano = Integer.parseInt(scanner.nextLine());
+            List<Autor> autoresVivos = autorRepository.findAutoresVivosEmAno(ano);
+
+            if (autoresVivos.isEmpty()) {
+                System.out.println("Nenhum autor vivo encontrado para o ano de " + ano + ".");
+            } else {
+                System.out.println("\n--- AUTORES VIVOS NO ANO DE " + ano + "---");
+                autoresVivos.forEach(System.out::println);
+            }
+        } catch (NumberFormatException e) {
+            System.out.println("Entrada inválida. Por favor, digite um ano válido (números).");
+        }
+    }
+
+    private void processarListagemDeLivrosPorIdioma() {
+        System.out.println("Escolha um dos idiomas para a busca:");
+        System.out.println("es - espanhol");
+        System.out.println("en - inglês");
+        System.out.println("fr - francês");
+        System.out.println("pt - português");
+        System.out.print("Digite o código do idioma: ");
+
+        var codigoIdioma = scanner.nextLine();
+
+        List<Livro> livrosPorIdioma = livroRepository.findByIdiomaContainingIgnoreCase(codigoIdioma);
+
+        if (livrosPorIdioma.isEmpty()) {
+            System.out.println("Nenhum livro encontrado para o idioma '" + codigoIdioma + "'.");
+        } else {
+            System.out.println("\n--- LIVROS ENCONTRADOS NO IDIOMA '" + codigoIdioma + "' ---");
+            livrosPorIdioma.forEach(System.out::println);
         }
     }
 
